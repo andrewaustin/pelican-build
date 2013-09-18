@@ -1,4 +1,4 @@
-Title: Loggin Dajaxice Errors
+Title: Logging Dajaxice Errors
 Date: 2012-09-23
 Tags: python, django
 
