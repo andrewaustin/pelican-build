@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Andrew Austin</title>
+<link rel="stylesheet" href="/theme/css/style.css" type="text/css" />
+<link rel="stylesheet" href="/theme/css/colorful.css" type="text/css" />
+<meta name="description" content="Andrew Austin; I write software." />
+<meta name="keywords" content="Andrew, Austin, AndrewAustin, Andrew-Austin, Andrew Austin" />
+</head>
+
+<body>
+<div class="container">
+	<div class="header">
+        <h1><span id="site_title"><a href="http://andrew-austin.com">Andrew Austin</a></span>
+                                <span class="icons">
+                                    <a href="https://github.com/andrewaustin"><img src='/theme/images/icons/github.png' /></a>
+                                    <a href="http://www.linkedin.com/in/andrewdaustin/"><img src='/theme/images/icons/linkedin.png' /></a>
+                                    <a href="https://www.facebook.com/andrew.d.austin"><img src='theme/images/icons/facebook.png' /></a>
+                                    <a href="https://twitter.com/andrewdaustin"><img src='/theme/images/icons/twitter.png' /></a>
+                                    <a href="http://www.flickr.com/photos/andrew_austin/"><img src='/theme/images/icons/flickr.png' /></a>
+                                </span>
+                            </h1>
+	</div>
+	<div class="content">
+        <section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="/loggin-dajaxice-errors.html" rel="bookmark"
+         title="Loggin Dajaxice Errors">Loggin Dajaxice Errors</a></h2>
+  
+  </header>
+  <div class="entry-content">
+    <p>One of the problems when using Dajaxice in Django is that obtaining error
+ messages is not well documented. Luckily, Dajaxice makes use of Python’s
+ logging module. This means you can modify your settings.py to include a
+ log handler for Dajaxice.</p>
+<p>In your django settings module, look for the LOGGING directive. It should
+ look similar to the following block of code:</p>
+<div class="highlight"><pre><span class="n">LOGGING</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s">&#39;disable_existing_loggers&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+    <span class="s">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;mail_admins&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;level&#39;</span><span class="p">:</span> <span class="s">&#39;ERROR&#39;</span><span class="p">,</span>
+            <span class="s">&#39;class&#39;</span><span class="p">:</span> <span class="s">&#39;django.utils.log.AdminEmailHandler&#39;</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="s">&#39;loggers&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;django.request&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;mail_admins&#39;</span><span class="p">],</span>
+            <span class="s">&#39;level&#39;</span><span class="p">:</span> <span class="s">&#39;ERROR&#39;</span><span class="p">,</span>
+            <span class="s">&#39;propagate&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>By default, Django tries to mail errors sent to the django.requests logger to
+ the admin email(s) by using the error handler mail_admins, which is provided
+ by the django.utils.log.AdminEmailHandler class.</p>
+<p>Instead of using the django.requests logger, Dajaxice sends its error to the
+ dajaxice logger. To capture the errors sent to this log, we must define the
+ logger and set up a handler to handle these errors.</p>
+<p>Because I use Heroku and like to see errors in real time with the command
+ heroku logs -tail, I opted to set up an additional handler to log output
+ to the console. The following snippet, which goes in the handlers dictionary
+ listed above, defines a handler called console that outputs anything sent to it:</p>
+<div class="highlight"><pre><span class="s">&#39;console&#39;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s">&#39;level&#39;</span><span class="p">:</span> <span class="s">&#39;DEBUG&#39;</span><span class="p">,</span>
+    <span class="s">&#39;class&#39;</span><span class="p">:</span> <span class="s">&#39;logging.StreamHandler&#39;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Now that a handler is defined, it’s a few short lines to set up the logger
+ using this handler. The following logger, named dajaxice, responds to log
+ level WARNING or higher:</p>
+<div class="highlight"><pre><span class="s">&#39;dajaxice&#39;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;console&#39;</span><span class="p">],</span>
+    <span class="s">&#39;level&#39;</span><span class="p">:</span> <span class="s">&#39;WARNING&#39;</span><span class="p">,</span>
+    <span class="s">&#39;propagate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+<span class="p">},</span>
+</pre></div>
+
+
+<p>Now when Dajaxice spits out an error, it will be outputted to the console. See
+ the full code below:</p>
+<div class="highlight"><pre><span class="n">LOGGING</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s">&#39;disable_existing_loggers&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+    <span class="s">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;mail_admins&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;level&#39;</span><span class="p">:</span> <span class="s">&#39;ERROR&#39;</span><span class="p">,</span>
+            <span class="s">&#39;class&#39;</span><span class="p">:</span> <span class="s">&#39;django.utils.log.AdminEmailHandler&#39;</span>
+        <span class="p">},</span>
+        <span class="s">&#39;console&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;level&#39;</span><span class="p">:</span> <span class="s">&#39;DEBUG&#39;</span><span class="p">,</span>
+            <span class="s">&#39;class&#39;</span><span class="p">:</span> <span class="s">&#39;logging.StreamHandler&#39;</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="s">&#39;loggers&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;django.request&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;mail_admins&#39;</span><span class="p">],</span>
+            <span class="s">&#39;level&#39;</span><span class="p">:</span> <span class="s">&#39;ERROR&#39;</span><span class="p">,</span>
+            <span class="s">&#39;propagate&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s">&#39;dajaxice&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;console&#39;</span><span class="p">],</span>
+            <span class="s">&#39;level&#39;</span><span class="p">:</span> <span class="s">&#39;WARNING&#39;</span><span class="p">,</span>
+            <span class="s">&#39;propagate&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+  </div><!-- /.entry-content -->
+<footer class="post-info">
+    <abbr class="published" title="09-23-2012">
+      09-23-2012
+    </abbr>
+  </footer><!-- /.post-info -->
+
+  </section>
+    </div>
+		<div class="copyright">
+        	        	            <p>&copy; Andrew Austin </p>
+		</div>
+</body>
+</html>

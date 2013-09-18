@@ -1,0 +1,69 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Andrew Austin</title>
+<link rel="stylesheet" href="/theme/css/style.css" type="text/css" />
+<link rel="stylesheet" href="/theme/css/colorful.css" type="text/css" />
+<meta name="description" content="Andrew Austin; I write software." />
+<meta name="keywords" content="Andrew, Austin, AndrewAustin, Andrew-Austin, Andrew Austin" />
+</head>
+
+<body>
+<div class="container">
+	<div class="header">
+        <h1><span id="site_title"><a href="http://andrew-austin.com">Andrew Austin</a></span>
+                                <span class="icons">
+                                    <a href="https://github.com/andrewaustin"><img src='/theme/images/icons/github.png' /></a>
+                                    <a href="http://www.linkedin.com/in/andrewdaustin/"><img src='/theme/images/icons/linkedin.png' /></a>
+                                    <a href="https://www.facebook.com/andrew.d.austin"><img src='theme/images/icons/facebook.png' /></a>
+                                    <a href="https://twitter.com/andrewdaustin"><img src='/theme/images/icons/twitter.png' /></a>
+                                    <a href="http://www.flickr.com/photos/andrew_austin/"><img src='/theme/images/icons/flickr.png' /></a>
+                                </span>
+                            </h1>
+	</div>
+	<div class="content">
+        <section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="/eclipseini-and-ubuntu-1204.html" rel="bookmark"
+         title="Eclipse.ini and Ubuntu 12.04">Eclipse.ini and Ubuntu 12.04</a></h2>
+  
+  </header>
+  <div class="entry-content">
+    <p>I was recently running into memory issues using the Scala IDE eclipse plugin
+ and knew I needed to tweak my JVM heap size, but for some reason couldn’t
+ find the location that Ubuntu hid eclipse.ini to make this change.</p>
+<p>After a quick search, it turns out Ubuntu puts the eclipse.ini file in
+ /etc/eclipse.ini.</p>
+<p>To increase your JVM heap in Ubuntu, look for the following lines in eclipse.ini:</p>
+<div class="highlight"><pre>-vmargs
+-Xms40m
+-Xmx384m
+</pre></div>
+
+
+<p>If you’re running things like Tomcat, Hibernate, Scala, PDT, or PyDev then
+ the range of 40MB to 384MB of heap space is hardly enough. Change these
+ values to larges ones such as:</p>
+<div class="highlight"><pre>-vmargs
+-Xms512m
+-Xmx1024m
+</pre></div>
+
+
+<p>This will increase your heap size minimum from the default 40MB to 512MB and a
+ maximum of 1GB.</p>
+  </div><!-- /.entry-content -->
+<footer class="post-info">
+    <abbr class="published" title="09-22-2012">
+      09-22-2012
+    </abbr>
+  </footer><!-- /.post-info -->
+
+  </section>
+    </div>
+		<div class="copyright">
+        	        	            <p>&copy; Andrew Austin </p>
+		</div>
+</body>
+</html>

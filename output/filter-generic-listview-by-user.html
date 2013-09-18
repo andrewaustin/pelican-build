@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Andrew Austin</title>
+<link rel="stylesheet" href="/theme/css/style.css" type="text/css" />
+<link rel="stylesheet" href="/theme/css/colorful.css" type="text/css" />
+<meta name="description" content="Andrew Austin; I write software." />
+<meta name="keywords" content="Andrew, Austin, AndrewAustin, Andrew-Austin, Andrew Austin" />
+</head>
+
+<body>
+<div class="container">
+	<div class="header">
+        <h1><span id="site_title"><a href="http://andrew-austin.com">Andrew Austin</a></span>
+                                <span class="icons">
+                                    <a href="https://github.com/andrewaustin"><img src='/theme/images/icons/github.png' /></a>
+                                    <a href="http://www.linkedin.com/in/andrewdaustin/"><img src='/theme/images/icons/linkedin.png' /></a>
+                                    <a href="https://www.facebook.com/andrew.d.austin"><img src='theme/images/icons/facebook.png' /></a>
+                                    <a href="https://twitter.com/andrewdaustin"><img src='/theme/images/icons/twitter.png' /></a>
+                                    <a href="http://www.flickr.com/photos/andrew_austin/"><img src='/theme/images/icons/flickr.png' /></a>
+                                </span>
+                            </h1>
+	</div>
+	<div class="content">
+        <section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="/filter-generic-listview-by-user.html" rel="bookmark"
+         title="Filter Generic ListView by User">Filter Generic ListView by User</a></h2>
+  
+  </header>
+  <div class="entry-content">
+    <p>I’ve been working quite a bit with Django’s class based generic views the
+ past few weeks. Normally, if you just want to take advantage of class based
+ views you can edit your urls.py and add the generic views directly there. For
+ example, if you just want to list all the objects, you can use the generic
+ ListView and add the following snippet to your urls.py urlpatterns:</p>
+<div class="highlight"><pre><span class="n">url</span><span class="p">(</span><span class="s">r&#39;^myobjects/$&#39;</span><span class="p">,</span><span class="n">ListView</span><span class="o">.</span><span class="n">as_view</span><span class="p">(</span>
+        <span class="n">queryset</span> <span class="o">=</span> <span class="n">MyObject</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;-date&#39;</span><span class="p">),</span>
+        <span class="n">template_name</span> <span class="o">=</span><span class="s">&#39;myapp/list.html&#39;</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;list&#39;</span><span class="p">),</span>
+</pre></div>
+
+
+<p>A problem arises, however, if you want to return only the objects associated
+with the logged in user. Normally in a view you simply filter based on
+request.user:</p>
+<div class="highlight"><pre><span class="n">user_objects</span> <span class="o">=</span> <span class="n">MyObject</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;-date&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>In your urls.py, there is no request object, so it is simply not possible to
+filter based on the user in urls.py. Instead, you’ll have to do a little bit
+more work.</p>
+<p>The generic class based ListView inherits a method get_queryset(self) whose
+function is to return a list of objects for the view. By default, this method
+looks like:</p>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the list of items for this view. This must be an iterable, and may</span>
+<span class="sd">        be a queryset (in which qs-specific behavior will be enabled).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">queryset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">queryset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queryset</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">queryset</span><span class="p">,</span> <span class="s">&#39;_clone&#39;</span><span class="p">):</span>
+                <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">_clone</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">queryset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_default_manager</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ImproperlyConfigured</span><span class="p">(</span><span class="s">&quot;&#39;</span><span class="si">%s</span><span class="s">&#39; must define &#39;queryset&#39; or &#39;model&#39;&quot;</span>
+                                   <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+</pre></div>
+
+
+<p>The method first checks to see if we’ve already stored the queryset, and if so
+it returns it. Otherwise, the method returns all the objects the database
+manager cares to provide (line 11).</p>
+<p>Luckily for us, we can also get the user who made the request in
+get_queryset(self) because the dispatch method of ListView (which is also
+inherited) stores the request made by the user in self.request. As you would
+expect, the user object is found at self.request.user.</p>
+<p>Now, its simply a matter of creating a new class based view in our views.py that
+inherits from ListView. This new class overrides the get_queryset(self) method
+to return a filtered queryset:</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">MyObjectListView</span><span class="p">(</span><span class="n">ListView</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Use django generic ListView to list all the the MyObjects for the current</span>
+<span class="sd">    user.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Override get_querset so we can filter on request.user &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">MyObject</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;-date&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Hooking this new class based view up in our urls.py is also straightforward. You
+simply have to add the following line to your urlpatterns (of course you also
+have to import the new class based view as well):</p>
+<div class="highlight"><pre><span class="n">url</span><span class="p">(</span><span class="s">r&#39;^myobjectlist/$&#39;</span><span class="p">,</span>
+       <span class="n">MyObjectListView</span><span class="o">.</span><span class="n">as_view</span><span class="p">(</span>
+            <span class="n">template_name</span><span class="o">=</span><span class="s">&#39;myapp/list.html&#39;</span>
+        <span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;list&#39;</span><span class="p">),</span>
+</pre></div>
+  </div><!-- /.entry-content -->
+<footer class="post-info">
+    <abbr class="published" title="09-27-2012">
+      09-27-2012
+    </abbr>
+  </footer><!-- /.post-info -->
+
+  </section>
+    </div>
+		<div class="copyright">
+        	        	            <p>&copy; Andrew Austin </p>
+		</div>
+</body>
+</html>
